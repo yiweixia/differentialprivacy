@@ -14,7 +14,6 @@ for column in ['sales', 'salary']:
     dummies = pd.get_dummies(df[column])
     df[dummies.columns] = dummies
 
-del df['sales']
 del df['salary']
 
 df.to_csv("processed.csv")
