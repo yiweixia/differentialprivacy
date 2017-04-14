@@ -94,8 +94,12 @@ def apply_noise(df, cat_chance):
     categorize(df, 'salary')
     categorize(df, 'job')
     
-    for column in list(df):       
-
+    cols = list(df)
+    
+    df = pd.DataFrame(normalize(df, axis=0, norm='max'), columns = cols)
+    
+    for column in list(df):
+        
         vals = df[column].astype('category').values.categories
 
         original = df[column].copy()
@@ -183,5 +187,3 @@ df = df.rename(columns = {'sales': 'job'})
 df = split_category(df)
 
 df.to_csv("processed.csv")
-
-

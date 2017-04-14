@@ -10,9 +10,11 @@ import pandas as pd
 from sklearn import linear_model, metrics
 from sklearn.model_selection import cross_val_score, cross_val_predict
 from ggplot import *
+import matplotlib
+import matplotlib.pyplot as plt
+#matplotlib.style.use('ggplot')
 
-def load_data(prefix):
-    path = 'data\\job_categorical\\' + prefix
+def load_data(path):
     data = pd.read_csv(path + '_x.csv')
     X = np.array(data)[:, 1:]
 
@@ -28,7 +30,8 @@ def accuracy(pred, Y):
 def kfold_cross_validation(trainX, trainY, k):
     logreg = linear_model.LogisticRegression()
     pred = cross_val_predict(logreg, X = trainX, y = trainY, cv=k)
-    print accuracy(pred, trainY)
+    logreg.fit(trainX, trainY)
+    print "On anonymized training set:" + str(accuracy(pred, trainY))
     return logreg
 #==============================================================================
 #     section_size = int(round(len(trainX) * k))
@@ -42,20 +45,23 @@ def kfold_cross_validation(trainX, trainY, k):
 #         print logreg.score(X, Y)
 #==============================================================================
 
+def test_on_non_noisy(logreg, testX, testY):
+    pred = logreg.predict(testX)
+    print "On non-anomymized test set: " + str(accuracy(pred, testY))
+
 def plot(logreg, testX, testY):
     preds = logreg.predict_proba(testX)[:,1]
     fpr, tpr, _ = metrics.roc_curve(testY, preds)
 
     df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
-    ggplot(df, aes(x='FPR', y='TPR')) +\
-    geom_line() +\
-    geom_abline(linetype='dashed')
+    df.plot(x='fpr', y='tpr')
 
 def main():
-    trainX, trainY = load_data('train')
-    testX, testY = load_data('test')
+    trainX, trainY = load_data('data\\satisfaction_categorical\\train')
+    testX, testY = load_data('data\\satisfaction_categorical_laplace\\train')
     logreg = kfold_cross_validation(trainX, trainY, 5)
-    #plot(logreg, testX, testY)
+    test_on_non_noisy(logreg, testX, testY)
+    plot(logreg, testX, testY)
 
 if __name__ == "__main__":
     main()
