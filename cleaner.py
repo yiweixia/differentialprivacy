@@ -174,6 +174,9 @@ def super_split_noisy_satisfaction(df, cat_chance):
 def super_split_job():
     super_split(df, "job", False)
     
+def refresh():
+    return pd.read_csv("processed.csv", index_col=False)
+    
 df = pd.read_csv("raw.csv")
 
 df = df.rename(columns = {'sales': 'job'})
