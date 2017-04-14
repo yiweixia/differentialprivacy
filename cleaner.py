@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Fri Apr 14 14:15:48 2017
+
+@author: dkim63
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Apr 12 15:02:23 2017
 
 @author: Yiwei Xia
@@ -8,9 +15,9 @@ Created on Wed Apr 12 15:02:23 2017
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
+import random
 import numpy as np
 import math
-import random
 
 df = pd.read_csv("raw.csv")
 
@@ -76,7 +83,7 @@ def add_noise_categorical(x, original, cat_chance):
     
 # takes processed data, applies noise according to laplace if continuous variable, cat_chance if categorical or boolean
 # cat_chance is some value between 0 and 1
-def apply_noise(df, laplace, cat_chance):
+def apply_noise(df, cat_chance):
     
     categorize(df, 'salary')
     categorize(df, 'job')
@@ -92,9 +99,14 @@ def apply_noise(df, laplace, cat_chance):
             column = [add_noise_categorical(x, original, cat_chance) for x in column]
 
         else:
-            #laplace
-            return 0
-
+            l = [None] * len(df)
+            var = df[column].var()
+            b = math.sqrt(var/2)
+            for i, val in df[column].iteritems():
+                l[i] = val + np.random.laplace(scale=b)
+            df[column] = pd.Series(l, index = df.index)
+            normalize(df, column)
+        
 
 def g5(x):
     if x > .5:
@@ -110,19 +122,24 @@ def satisfaction_mask_boolean(df):
         return 0
 
 def super_split(df, starting_string, needs_categorizing, laplace):
+    
     if needs_categorizing:
         categorize(df, starting_string)
-    
+        
     if not os.path.exists("data/"):
         os.makedirs("data/")
     path = "data/" + starting_string + "_categorical/"
     if not os.path.exists(path):
         os.makedirs(path)
-        
+    
+    for column in list(df):
+        normalize(df, column)
+    
     if laplace:
         path = path + "laplace/"
-    if not os.path.exists(path):
-        os.makedirs(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        apply_noise(df, 0.25)
     
     tt_split = split_train_test(df)
     train = tt_split['train']
@@ -140,6 +157,3 @@ def super_split_salary():
     
 def super_split_job():
     super_split(df, "job", False)
-    
-def super_split_job_laplace(cols):
-    super_split(df, "job", True, cols)

@@ -8,25 +8,27 @@ Created on Wed Apr 12 15:29:18 2017
 import numpy as np
 import pandas as pd
 from sklearn import linear_model, metrics
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, cross_val_predict
 from ggplot import *
 
-k = 10
-
 def load_data(prefix):
-    path = 'data\\job_categorical\\laplace\\' + prefix
+    path = 'data\\job_categorical\\' + prefix
     data = pd.read_csv(path + '_x.csv')
     X = np.array(data)[:, 1:]
 
     data = pd.read_csv(path + '_y.csv')
     tmpY = np.array(data)[:, 1:]
     Y  = [val for sublist in tmpY for val in sublist]
+    
     return X, np.array(Y)
 
-def kfold_cross_validation(trainX, trainY):
+def accuracy(pred, Y):
+    return float(np.sum(pred == Y))/len(pred) * 100
+
+def kfold_cross_validation(trainX, trainY, k):
     logreg = linear_model.LogisticRegression()
-    scores = cross_val_score(logreg, trainX, trainY, cv=k)
-    print scores
+    pred = cross_val_predict(logreg, X = trainX, y = trainY, cv=k)
+    print accuracy(pred, trainY)
     return logreg
 #==============================================================================
 #     section_size = int(round(len(trainX) * k))
@@ -52,7 +54,7 @@ def plot(logreg, testX, testY):
 def main():
     trainX, trainY = load_data('train')
     testX, testY = load_data('test')
-    logreg = kfold_cross_validation(trainX, trainY)
+    logreg = kfold_cross_validation(trainX, trainY, 5)
     #plot(logreg, testX, testY)
 
 if __name__ == "__main__":
