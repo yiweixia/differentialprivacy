@@ -178,7 +178,7 @@ def refresh():
     
 def nosat():
     df = refresh()
-    satisfaction(df, 0)
+    satisfaction(df, .10)
     
 df = pd.read_csv("raw.csv")
 
