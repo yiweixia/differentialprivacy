@@ -1,45 +1,59 @@
-print(__doc__)
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr 12 15:29:18 2017
 
-# Code source: Gaël Varoquaux
-# Modified for documentation by Jaques Grobler
-# License: BSD 3 clause
+@author: dkim63
+"""
 
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import linear_model, datasets
+import pandas as pd
+from sklearn import linear_model, metrics
+from sklearn.model_selection import cross_val_score
+from ggplot import *
 
-# import some data to play with
-iris = datasets.load_iris()
-X = iris.data[:, :2]  # we only take the first two features.
-Y = iris.target
+k = 10
 
-h = .02  # step size in the mesh
+def load_data(prefix):
+    path = 'data\\job_categorical\\laplace\\' + prefix
+    data = pd.read_csv(path + '_x.csv')
+    X = np.array(data)[:, 1:]
 
-logreg = linear_model.LogisticRegression(C=1e5)
+    data = pd.read_csv(path + '_y.csv')
+    tmpY = np.array(data)[:, 1:]
+    Y  = [val for sublist in tmpY for val in sublist]
+    return X, np.array(Y)
 
-# we create an instance of Neighbours Classifier and fit the data.
-logreg.fit(X, Y)
+def kfold_cross_validation(trainX, trainY):
+    logreg = linear_model.LogisticRegression()
+    scores = cross_val_score(logreg, trainX, trainY, cv=k)
+    print scores
+    return logreg
+#==============================================================================
+#     section_size = int(round(len(trainX) * k))
+#     for i in range(int(k*100)):
+#         X = np.concatenate([trainX[:i*section_size], trainX[(i+1)*section_size:]])
+#         Y = np.concatenate([trainY[:i*section_size], trainY[(i+1)*section_size:]])
+#         validateX = trainX[i*section_size:(i+1)*section_size]
+#         validateY = trainY[i*section_size:(i+1)*section_size]
+#         logreg.fit(X, Y)
+#         print i
+#         print logreg.score(X, Y)
+#==============================================================================
 
-# Plot the decision boundary. For that, we will assign a color to each
-# point in the mesh [x_min, x_max]x[y_min, y_max].
-x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
-xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-Z = logreg.predict(np.c_[xx.ravel(), yy.ravel()])
+def plot(logreg, testX, testY):
+    preds = logreg.predict_proba(testX)[:,1]
+    fpr, tpr, _ = metrics.roc_curve(testY, preds)
 
-# Put the result into a color plot
-Z = Z.reshape(xx.shape)
-plt.figure(1, figsize=(4, 3))
-plt.pcolormesh(xx, yy, Z, cmap=plt.cm.Paired)
+    df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
+    ggplot(df, aes(x='FPR', y='TPR')) +\
+    geom_line() +\
+    geom_abline(linetype='dashed')
 
-# Plot also the training points
-plt.scatter(X[:, 0], X[:, 1], c=Y, edgecolors='k', cmap=plt.cm.Paired)
-plt.xlabel('Sepal length')
-plt.ylabel('Sepal width')
+def main():
+    trainX, trainY = load_data('train')
+    testX, testY = load_data('test')
+    logreg = kfold_cross_validation(trainX, trainY)
+    #plot(logreg, testX, testY)
 
-plt.xlim(xx.min(), xx.max())
-plt.ylim(yy.min(), yy.max())
-plt.xticks(())
-plt.yticks(())
-
-plt.show()
+if __name__ == "__main__":
+    main()

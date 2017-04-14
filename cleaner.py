@@ -7,6 +7,8 @@ Created on Wed Apr 12 15:02:23 2017
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import os
+import numpy as np
 
 df = pd.read_csv("raw.csv")
 
@@ -48,19 +50,47 @@ def split_xy(df, starting_string):
     x = df
     return {"x":x, "y":y}
 
-def super_split(df, starting_string):
+def normalize(df, col):
+    #(xi - min(x))/ (max(x) - min(x))
+    df[col] = (df[col] - df[col].min())/(df[col].max() - df[col].min())
+
+def super_split(df, starting_string, laplace, laplace_col=[]):
     categorize(df, starting_string)
+    
+    if not os.path.exists("data/"):
+        os.makedirs("data/")
+    path = "data/" + starting_string + "_categorical/"
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
+    if laplace:
+        path = path + "laplace/"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        
+        for col in laplace_col:
+            normalize(df, col)
+            l = [None] * len(df)
+            for i, val in df[col].iteritems():
+                l[i] = val + np.random.laplace(scale=0.5)
+            df[col] = pd.Series(l, index = df.index)
+    
     tt_split = split_train_test(df)
     train = tt_split['train']
     test = tt_split['test']
     train_xy = split_xy(train, starting_string)
     test_xy = split_xy(test, starting_string)
-    train_xy['x'].to_csv("data/salary_categorical/train_x.csv")
-    train_xy['y'].to_csv("data/salary_categorical/train_y.csv")
-    test_xy['x'].to_csv("data/salary_categorical/test_x.csv")
-    test_xy['y'].to_csv("data/salary_categorical/test_y.csv")
-    
-def super_split_salary():
-    super_split(df, "salary")
+
+    train_xy['x'].to_csv(path + "/train_x.csv")
+    train_xy['y'].to_csv(path + "/train_y.csv")
+    test_xy['x'].to_csv(path + "/test_x.csv")
+    test_xy['y'].to_csv(path + "/test_y.csv")
         
+def super_split_salary():
+    super_split(df, "salary", False)
     
+def super_split_job():
+    super_split(df, "job", False)
+    
+def super_split_job_laplace(cols):
+    super_split(df, "job", True, cols)
