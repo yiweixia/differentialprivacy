@@ -7,14 +7,15 @@ Created on Wed Apr 12 15:21:29 2017
 
 from sklearn import tree
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import linear_model, datasets
+from sklearn.model_selection import cross_val_score
 
-aX = pd.read_csv("data/salary_categorical/train_x.csv")
-aY = pd.read_csv("data/salary_categorical/train_y.csv")
-aX_p = pd.read_csv("data/salary_categorical/test_x.csv")
-aY_t = pd.read_csv("data/salary_categorical/test_y.csv")
+def get_files(var):
+    folder = "data/" + var + "_categorical/"
+    X = pd.read_csv(folder + "train_x.csv")
+    Y = pd.read_csv(folder + "train_y.csv")
+    X_test = pd.read_csv(folder + "test_x.csv")
+    Y_test = pd.read_csv(folder + "test_y.csv")
+    return X, Y, X_test, Y_test
 
 # X: training X
 # Y: training Y
@@ -45,4 +46,10 @@ def run_decision_tree(X, Y, X_p, Y_t):
     return{"predicted":Y_p, "difference":diff}
 
 def testo():
-    return run_decision_tree(aX, aY, aX_p, aY_t)
+    return run_decision_tree(X, Y, X_test, Y_test)
+    
+def decision_tree(X_train, Y_train):
+
+    clf = tree.DecisionTreeClassifier()
+    scores_decision_tree = cross_val_score(estimator=clf, X=X_train, y=Y_train,cv= 5)
+    return scores_decision_tree

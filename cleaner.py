@@ -95,8 +95,23 @@ def apply_noise(df, laplace, cat_chance):
             #laplace
             return 0
 
-def super_split(df, starting_string, laplace):
-    categorize(df, starting_string)
+
+def g5(x):
+    if x > .5:
+        return 1
+    else:
+        return 0
+            
+# turns satisfaction into a boolean value either > .5 or not
+def satisfaction_mask_boolean(df):
+    if 'satisfaction_level' in list(df):
+        return [g5(x) for x in df['satisfaction_level']]
+    else:
+        return 0
+
+def super_split(df, starting_string, needs_categorizing, laplace):
+    if needs_categorizing:
+        categorize(df, starting_string)
     
     if not os.path.exists("data/"):
         os.makedirs("data/")
