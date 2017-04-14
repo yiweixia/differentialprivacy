@@ -19,18 +19,25 @@ import random
 import numpy as np
 import math
 
-df = pd.read_csv("raw.csv")
+def split_category(df):
+    
+    del_queue = []
+    for column in list(df):
+        if column.startswith('job'):
+            df[column] = df[column].apply(str)
+            dummies = pd.get_dummies(df[column])
+            df["job_" + dummies.columns] = dummies
+            del_queue.append(column)
+        if column.startswith('salary'):
+            df[column] = df[column].apply(str)
+            dummies = pd.get_dummies(df[column])
+            df["salary_" + dummies.columns] = dummies
+            del_queue.append(column)
+            
+    for d in del_queue:
+        del df[d]
 
-df = df.rename(columns = {'sales': 'job'})
-
-for column in ['job', 'salary']:
-    dummies = pd.get_dummies(df[column])
-    df[column + "_" + dummies.columns] = dummies
-
-del df['salary']
-del df['job']
-
-df.to_csv("processed.csv")
+    return df
 
 # splits data frame into training and test sets
 def split_train_test(df):
@@ -51,6 +58,8 @@ def categorize(df, starting_string):
             df[new_name] = df[new_name] + df[column]
             del df[column]
             i += 1
+    
+    return df
     
 # splits dataframe columns based on starting string
 # e.g. split_xy(df, "salary") will have salary_high/medium/low as Y, and everything else as X
@@ -96,7 +105,7 @@ def apply_noise(df, cat_chance):
         
         # if it's a boolean or categorical
         if is_boolean_variable(vals) or "categorized" in column:
-            column = [add_noise_categorical(x, original, cat_chance) for x in column]
+            df[column] = [add_noise_categorical(x, original, cat_chance) for x in df[column]]
 
         else:
             l = [None] * len(df)
@@ -106,8 +115,9 @@ def apply_noise(df, cat_chance):
                 l[i] = val + np.random.laplace(scale=b)
             df[column] = pd.Series(l, index = df.index)
             normalize(df, column)
+            
+    return split_category(df)
         
-
 def g5(x):
     if x > .5:
         return 1
@@ -128,18 +138,15 @@ def super_split(df, starting_string, needs_categorizing, laplace):
         
     if not os.path.exists("data/"):
         os.makedirs("data/")
-    path = "data/" + starting_string + "_categorical/"
+    path = "data/" + starting_string + "_categorical"
+    if laplace:
+        path += "_laplace"
+    path += "/"
     if not os.path.exists(path):
         os.makedirs(path)
     
     for column in list(df):
         normalize(df, column)
-    
-    if laplace:
-        path = path + "laplace/"
-        if not os.path.exists(path):
-            os.makedirs(path)
-        apply_noise(df, 0.25)
     
     tt_split = split_train_test(df)
     train = tt_split['train']
@@ -151,9 +158,28 @@ def super_split(df, starting_string, needs_categorizing, laplace):
     train_xy['y'].to_csv(path + "/train_y.csv")
     test_xy['x'].to_csv(path + "/test_x.csv")
     test_xy['y'].to_csv(path + "/test_y.csv")
-        
-def super_split_salary():
-    super_split(df, "salary", False)
+
+def satisfaction(df, cat_chance):
+    df['satisfaction_level'] = satisfaction_mask_boolean(df)
+    super_split_satisfaction(df)
+    super_split_noisy_satisfaction(df, cat_chance)
+    
+def super_split_satisfaction(df):
+    super_split(df, "satisfaction", False, False)
+    
+def super_split_noisy_satisfaction(df, cat_chance):
+    df = apply_noise(df, cat_chance)
+    super_split(df, "satisfaction", False, True)
     
 def super_split_job():
     super_split(df, "job", False)
+    
+df = pd.read_csv("raw.csv")
+
+df = df.rename(columns = {'sales': 'job'})
+
+df = split_category(df)
+
+df.to_csv("processed.csv")
+
+
