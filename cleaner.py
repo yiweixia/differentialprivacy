@@ -111,8 +111,7 @@ def apply_noise(df, cat_chance):
             for i, val in df[column].iteritems():
                 l[i] = val + np.random.laplace(scale=b)
             df[column] = pd.Series(l, index = df.index)
-            normalize(df[column], norm='l2')
-            
+            normalize(df[column].values.reshape(-1, 1), norm='l1')
     return split_category(df)
         
 def g5(x):
@@ -141,9 +140,6 @@ def super_split(df, starting_string, needs_categorizing, laplace):
     path += "/"
     if not os.path.exists(path):
         os.makedirs(path)
-    
-    for column in list(df):
-        normalize(df, column)
     
     tt_split = split_train_test(df)
     train = tt_split['train']
