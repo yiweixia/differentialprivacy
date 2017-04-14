@@ -14,7 +14,7 @@ from ggplot import *
 k = 10
 
 def load_data(prefix):
-    path = 'data\\job_categorical\\laplace\\' + prefix
+    path = 'data\\job_categorical\\' + prefix
     data = pd.read_csv(path + '_x.csv')
     X = np.array(data)[:, 1:]
 

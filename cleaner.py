@@ -54,8 +54,9 @@ def normalize(df, col):
     #(xi - min(x))/ (max(x) - min(x))
     df[col] = (df[col] - df[col].min())/(df[col].max() - df[col].min())
 
-def super_split(df, starting_string, laplace, laplace_col=[]):
+def super_split(df, starting_string, laplace):
     categorize(df, starting_string)
+    categorize(df, 'salary')
     
     if not os.path.exists("data/"):
         os.makedirs("data/")
@@ -68,7 +69,7 @@ def super_split(df, starting_string, laplace, laplace_col=[]):
         if not os.path.exists(path):
             os.makedirs(path)
         
-        for col in laplace_col:
+        for col in list(df):
             normalize(df, col)
             l = [None] * len(df)
             for i, val in df[col].iteritems():
@@ -92,5 +93,5 @@ def super_split_salary():
 def super_split_job():
     super_split(df, "job", False)
     
-def super_split_job_laplace(cols):
-    super_split(df, "job", True, cols)
+def super_split_job_laplace():
+    super_split(df, "job", True)
