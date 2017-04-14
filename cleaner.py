@@ -14,6 +14,7 @@ Created on Wed Apr 12 15:02:23 2017
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import normalize
 import os
 import random
 import numpy as np
@@ -71,10 +72,6 @@ def split_xy(df, starting_string):
     x = df
     return {"x":x, "y":y}
 
-def normalize(df, col):
-    #(xi - min(x))/ (max(x) - min(x))
-    df[col] = (df[col] - df[col].min())/(df[col].max() - df[col].min())
-
 # checks if vals is a boolean variable
 def is_boolean_variable(vals):
     if vals.size == 2:
@@ -114,7 +111,7 @@ def apply_noise(df, cat_chance):
             for i, val in df[column].iteritems():
                 l[i] = val + np.random.laplace(scale=b)
             df[column] = pd.Series(l, index = df.index)
-            normalize(df, column)
+            normalize(df[column], norm='l2')
             
     return split_category(df)
         
