@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Fri Apr 14 14:15:48 2017
+
+@author: dkim63
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Apr 12 15:02:23 2017
 
 @author: Yiwei Xia
@@ -8,7 +15,9 @@ Created on Wed Apr 12 15:02:23 2017
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
+import random
 import numpy as np
+import math
 
 df = pd.read_csv("raw.csv")
 
@@ -23,6 +32,7 @@ del df['job']
 
 df.to_csv("processed.csv")
 
+# splits data frame into training and test sets
 def split_train_test(df):
     train, test = train_test_split(df, test_size=.2, random_state=42)
     return{"train":train, "test":test}
@@ -34,6 +44,8 @@ def categorize(df, starting_string):
     new_name = starting_string + "_categorized"
     df[new_name] = 0;
     for column in list(df):
+        if not isinstance(column, str):
+            continue
         if column.startswith(starting_string) and column != new_name:
             df[column] = df[column]*i
             df[new_name] = df[new_name] + df[column]
@@ -54,6 +66,47 @@ def normalize(df, col):
     #(xi - min(x))/ (max(x) - min(x))
     df[col] = (df[col] - df[col].min())/(df[col].max() - df[col].min())
 
+# checks if vals is a boolean variable
+def is_boolean_variable(vals):
+    if vals.size == 2:
+        if vals[0] == 0 and vals[1] == 1:
+            return True
+            
+    return False
+
+# samples from the original distribution
+def add_noise_categorical(x, original, cat_chance):
+    if random.random() < cat_chance:
+        return random.choice(original)
+    else:
+        return x
+    
+# takes processed data, applies noise according to laplace if continuous variable, cat_chance if categorical or boolean
+# cat_chance is some value between 0 and 1
+def apply_noise(df, cat_chance):
+    
+    categorize(df, 'salary')
+    categorize(df, 'job')
+    
+    for column in list(df):       
+
+        vals = df[column].astype('category').values.categories
+
+        original = df[column].copy()
+        
+        # if it's a boolean or categorical
+        if is_boolean_variable(vals) or "categorized" in column:
+            column = [add_noise_categorical(x, original, cat_chance) for x in column]
+
+        else:
+            l = [None] * len(df)
+            var = df[column].var()
+            b = math.sqrt(var/2)
+            for i, val in df[column].iteritems():
+                l[i] = val + np.random.laplace(scale=b)
+            df[column] = pd.Series(l, index = df.index)
+            normalize(df, column)
+        
 def super_split(df, starting_string, laplace):
     categorize(df, starting_string)
     categorize(df, 'salary')
@@ -64,17 +117,14 @@ def super_split(df, starting_string, laplace):
     if not os.path.exists(path):
         os.makedirs(path)
     
+    for column in list(df):
+        normalize(df, column)
+    
     if laplace:
         path = path + "laplace/"
         if not os.path.exists(path):
             os.makedirs(path)
-        
-        for col in list(df):
-            normalize(df, col)
-            l = [None] * len(df)
-            for i, val in df[col].iteritems():
-                l[i] = val + np.random.laplace(scale=0.5)
-            df[col] = pd.Series(l, index = df.index)
+        apply_noise(df, 0.25)
     
     tt_split = split_train_test(df)
     train = tt_split['train']
@@ -92,6 +142,3 @@ def super_split_salary():
     
 def super_split_job():
     super_split(df, "job", False)
-    
-def super_split_job_laplace():
-    super_split(df, "job", True)
