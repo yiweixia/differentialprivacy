@@ -149,10 +149,10 @@ def super_split(df, starting_string, needs_categorizing, laplace):
     train_xy = split_xy(train, starting_string)
     test_xy = split_xy(test, starting_string)
 
-    train_xy['x'].to_csv(path + "/train_x.csv")
-    train_xy['y'].to_csv(path + "/train_y.csv")
-    test_xy['x'].to_csv(path + "/test_x.csv")
-    test_xy['y'].to_csv(path + "/test_y.csv")
+    train_xy['x'].to_csv(path + "train_x.csv")
+    train_xy['y'].to_csv(path + "train_y.csv")
+    test_xy['x'].to_csv(path + "test_x.csv")
+    test_xy['y'].to_csv(path + "test_y.csv")
 
 def satisfaction(df, cat_chance):
     df['satisfaction_level'] = satisfaction_mask_boolean(df)
