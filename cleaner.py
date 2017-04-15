@@ -19,6 +19,7 @@ import os
 import random
 import numpy as np
 import math
+import numpy
 
 def split_category(df):
     
@@ -94,6 +95,9 @@ def apply_noise(df, cat_chance):
     categorize(df, 'salary')
     categorize(df, 'job')
     
+    deltaf = find_delta_f(df)
+    epsilon = 70
+    
     for column in list(df):
         
         vals = df[column].astype('category').values.categories
@@ -106,12 +110,14 @@ def apply_noise(df, cat_chance):
 
         else:
             normalize(df[column].values.reshape(-1, 1), norm='max')
-            
+            #print deltaf/epsilon
             l = [None] * len(df)
-            var = df[column].var()
-            b = math.sqrt(var/2)
+            #var = df[column].var()
+            #b = math.sqrt(var/2)
+            print column
+            print b
             for i, val in df[column].iteritems():
-                l[i] = val + np.random.laplace(scale=b)
+                l[i] = val + np.random.laplace(scale=deltaf/epsilon)
             df[column] = pd.Series(l, index = df.index)
 
     return split_category(df)
@@ -170,6 +176,13 @@ def super_split_noisy_satisfaction(df, cat_chance):
     
 def super_split_job():
     super_split(df, "job", False)
+    
+def find_delta_f(df):
+    df['satisfaction_level'] = satisfaction_mask_boolean(df)
+    cols = list(df)
+    df = pd.DataFrame(normalize(df, axis=0, norm='max'), columns = cols)
+    max = numpy.amax([numpy.linalg.norm(row, ord=1) for i, row in df.iterrows()])
+    return max
     
 def refresh():
     return pd.read_csv("processed.csv", index_col=False)
