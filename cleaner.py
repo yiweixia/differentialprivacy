@@ -94,10 +94,6 @@ def apply_noise(df, cat_chance):
     categorize(df, 'salary')
     categorize(df, 'job')
     
-    cols = list(df)
-    
-    df = pd.DataFrame(normalize(df, axis=0, norm='max'), columns = cols)
-    
     for column in list(df):
         
         vals = df[column].astype('category').values.categories
@@ -160,6 +156,8 @@ def super_split(df, starting_string, needs_categorizing, laplace):
 
 def satisfaction(df, cat_chance):
     df['satisfaction_level'] = satisfaction_mask_boolean(df)
+    cols = list(df)
+    df = pd.DataFrame(normalize(df, axis=0, norm='max'), columns = cols)
     super_split_satisfaction(df)
     super_split_noisy_satisfaction(df, cat_chance)
     
