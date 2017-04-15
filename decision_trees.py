@@ -15,8 +15,10 @@ def get_files(var, laplace):
         folder += "_laplace"
     folder += "/"
     X = pd.read_csv(folder + "train_x.csv")
+    X = X.drop(X.columns[0], axis=1)
     Y = pd.read_csv(folder + "train_y.csv")
     X_test = pd.read_csv(folder + "test_x.csv")
+    X_test = X_test.drop(X_test.columns[0], axis=1)
     Y_test = pd.read_csv(folder + "test_y.csv")
     return X, Y, X_test, Y_test
 
@@ -25,6 +27,8 @@ def testo():
     Xl, Yl, Xl_t, Yl_t = get_files('satisfaction', True)
     no_l = decision_tree(X, Y)
     l = decision_tree(Xl, Yl)
+    print(no_l)
+    print(l)
     return no_l, l
     
 def decision_tree(X_train, Y_train):

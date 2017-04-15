@@ -174,16 +174,15 @@ def super_split_job():
     super_split(df, "job", False)
     
 def refresh():
-    return pd.read_csv("processed.csv", index_col=False)
+    df = pd.read_csv("raw.csv")
+    df = df.rename(columns = {'sales': 'job'})
+    df = split_category(df)
+    df.to_csv("processed.csv")
+    return df
     
-def nosat():
+def nosat(cat):
+    print("generating for " + str(cat))
     df = refresh()
-    satisfaction(df, .10)
+    satisfaction(df, cat)
     
-df = pd.read_csv("raw.csv")
 
-df = df.rename(columns = {'sales': 'job'})
-
-df = split_category(df)
-
-df.to_csv("processed.csv")
