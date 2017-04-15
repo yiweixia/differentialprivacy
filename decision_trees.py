@@ -20,34 +20,6 @@ def get_files(var, laplace):
     Y_test = pd.read_csv(folder + "test_y.csv")
     return X, Y, X_test, Y_test
 
-# X: training X
-# Y: training Y
-# X_p: validation X
-# Y_t: validation Y
-# predicted: predicted values for Y
-# difference: Y_t = predicted -> 1, Y_t != predicted -> 0 
-def run_decision_tree(X, Y, X_p, Y_t):
-
-    clf = tree.DecisionTreeClassifier()
-    clf = clf.fit(X, Y)
-    Y_p = clf.predict(X_p)
-    
-    Y_p = pd.DataFrame(Y_p)
-    
-    diff = Y_p[1] - Y_t['salary_categorized']
-    
-    diff.to_csv("data/results/decision_trees.csv")
-    
-    def one_zero(x):
-        if x != 0:
-            return 0
-        else:
-            return 1
-        
-    diff = diff.apply(one_zero)
-    
-    return{"predicted":Y_p, "difference":diff}
-
 def testo():
     X, Y, X_t, Y_t = get_files('satisfaction', False)
     Xl, Yl, Xl_t, Yl_t = get_files('satisfaction', True)

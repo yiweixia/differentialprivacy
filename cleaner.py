@@ -105,12 +105,15 @@ def apply_noise(df, cat_chance):
             df[column] = [add_noise_categorical(x, original, cat_chance) for x in df[column]]
 
         else:
+            normalize(df[column].values.reshape(-1, 1), norm='max')
+            
             l = [None] * len(df)
             var = df[column].var()
             b = math.sqrt(var/2)
             for i, val in df[column].iteritems():
                 l[i] = val + np.random.laplace(scale=b)
             df[column] = pd.Series(l, index = df.index)
+
     return split_category(df)
         
 def g5(x):
@@ -170,6 +173,10 @@ def super_split_job():
     
 def refresh():
     return pd.read_csv("processed.csv", index_col=False)
+    
+def nosat():
+    df = refresh()
+    satisfaction(df, .10)
     
 df = pd.read_csv("raw.csv")
 
