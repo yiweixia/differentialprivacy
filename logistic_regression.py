@@ -8,11 +8,7 @@ Created on Wed Apr 12 15:29:18 2017
 import numpy as np
 import pandas as pd
 from sklearn import linear_model, metrics
-from sklearn.model_selection import cross_val_score, cross_val_predict
-from ggplot import *
-import matplotlib
-import matplotlib.pyplot as plt
-#matplotlib.style.use('ggplot')
+from sklearn.model_selection import cross_val_predict
 
 def load_data(path):
     data = pd.read_csv(path + '_x.csv')
@@ -54,7 +50,7 @@ def plot(logreg, testX, testY):
     fpr, tpr, _ = metrics.roc_curve(testY, preds)
 
     df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
-    df.plot(x='fpr', y='tpr')
+    df.plot(x='fpr', y='tpr', figsize=(12,10), title="With Laplace Mechanism and Category Chance = 0")
 
 def main():
     trainX, trainY = load_data('data\\satisfaction_categorical\\train')
