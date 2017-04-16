@@ -74,6 +74,24 @@ def get_info(X, Y, X_t, Y_t, l):
     metrix = precision_recall_fscore_support(Y_t, Y_p, labels=[0,1])
     print(np.around(np.matrix(metrix)), decimals = 2)
     
+def epsilon_test(laplace):
+    
+    if (laplace):
+        X, Y, X_t, Y_t = get_files('satisfaction', True)
+    else:
+        X, Y, X_t, Y_t = get_files('satisfaction', False)
+    
+    clf = tree.DecisionTreeClassifier()
+    clf.fit(X, Y)
+    
+    print("k-fold average")
+    scores_decision_tree = cross_val_score(estimator=clf, X=X, y=Y,cv= 5)
+    average = np.average(scores_decision_tree)
+    print(str(average))
+    
+    return average
+
+    
 def learningCurve(estimator, X, Y, cv, n_jobs,title):
     #change linespace to modify points in graph
     train_sizes=np.linspace(.05, 1.0, 20)

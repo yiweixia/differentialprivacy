@@ -90,13 +90,12 @@ def add_noise_categorical(x, original, cat_chance):
     
 # takes processed data, applies noise according to laplace if continuous variable, cat_chance if categorical or boolean
 # cat_chance is some value between 0 and 1
-def apply_noise(df, cat_chance):
+def apply_noise(df, cat_chance, epsilon):
     
     categorize(df, 'salary')
     categorize(df, 'job')
     
     deltaf = find_delta_f(df)
-    epsilon = 70
     
     for column in list(df):
         
@@ -114,8 +113,6 @@ def apply_noise(df, cat_chance):
             l = [None] * len(df)
             #var = df[column].var()
             #b = math.sqrt(var/2)
-            print column
-            print b
             for i, val in df[column].iteritems():
                 l[i] = val + np.random.laplace(scale=deltaf/epsilon)
             df[column] = pd.Series(l, index = df.index)
@@ -160,18 +157,18 @@ def super_split(df, starting_string, needs_categorizing, laplace):
     test_xy['x'].to_csv(path + "test_x.csv")
     test_xy['y'].to_csv(path + "test_y.csv")
 
-def satisfaction(df, cat_chance):
+def satisfaction(df, cat_chance, epsilon):
     df['satisfaction_level'] = satisfaction_mask_boolean(df)
     cols = list(df)
     df = pd.DataFrame(normalize(df, axis=0, norm='max'), columns = cols)
     super_split_satisfaction(df)
-    super_split_noisy_satisfaction(df, cat_chance)
+    super_split_noisy_satisfaction(df, cat_chance, epsilon)
     
 def super_split_satisfaction(df):
     super_split(df, "satisfaction", False, False)
     
-def super_split_noisy_satisfaction(df, cat_chance):
-    df = apply_noise(df, cat_chance)
+def super_split_noisy_satisfaction(df, cat_chance, epsilon):
+    df = apply_noise(df, cat_chance, epsilon)
     super_split(df, "satisfaction", False, True)
     
 def super_split_job():
@@ -191,9 +188,9 @@ def refresh():
     df.to_csv("processed.csv")
     return df
     
-def nosat(cat):
-    print("generating for " + str(cat))
+def nosat(cat, epsilon):
+    print("generating for cat: " + str(cat) + " eps: " + str(epsilon))
     df = refresh()
-    satisfaction(df, cat)
+    satisfaction(df, cat, epsilon)
     
 
