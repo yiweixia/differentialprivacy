@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.learning_curve import learning_curve
 
+
+np.set_printoptions(suppress=True)
 def get_files(var, laplace):
     
     folder = "data/" + var + "_categorical"
@@ -46,9 +48,9 @@ def testo():
 def get_info(X, Y, X_t, Y_t, l):
     
     if l:
-        title = "privatized"
+        title = "Privatized"
     else:
-        title = "not privatized"
+        title = "Not Privatized"
         
     print(title)
     
@@ -72,7 +74,11 @@ def get_info(X, Y, X_t, Y_t, l):
     plotConfusionMatrix(cm)
     
     metrix = precision_recall_fscore_support(Y_t, Y_p, labels=[0,1])
-    print(np.around(np.matrix(metrix)), decimals = 2)
+    
+    
+            
+    print(str(np.around(np.matrix(metrix), decimals=2)))
+
     
 def epsilon_test(laplace):
     
@@ -83,13 +89,13 @@ def epsilon_test(laplace):
     
     clf = tree.DecisionTreeClassifier()
     clf.fit(X, Y)
+    Y_p = clf.predict(X_t)
     
-    print("k-fold average")
-    scores_decision_tree = cross_val_score(estimator=clf, X=X, y=Y,cv= 5)
-    average = np.average(scores_decision_tree)
-    print(str(average))
+    print("test accuracy:")
+    accuracy = accuracy_score(Y_t, Y_p)
+    print(str(accuracy))
     
-    return average
+    return accuracy
 
     
 def learningCurve(estimator, X, Y, cv, n_jobs,title):
@@ -101,6 +107,10 @@ def learningCurve(estimator, X, Y, cv, n_jobs,title):
     plt.title(title)
     plt.xlabel("Training examples")
     plt.ylabel("Score")
+    
+    axes = plt.gca()
+    axes.set_xlim([0,12000])
+    axes.set_ylim([0.55,1.05])
     
     #calculate learning curve points for 20 portions of the data
     train_sizes, train_scores, test_scores = learning_curve(
